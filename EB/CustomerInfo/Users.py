@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from Context.Context import Context
 from DataAccess.DataObject import UsersRDB as UsersRDB
 import uuid
+import boto3
+
 
 # The base classes would not be IN the project. They would be in a separate included package.
 # They would also do some things.
@@ -62,6 +64,13 @@ class UsersService(BaseService):
         user_info['id'] = str(uuid.uuid4())
         user_info["status"] = "PENDING"
         result = UsersRDB.create_user(user_info=user_info)
+
+        client = boto3.client('sns')
+        response = client.publish(
+            TopicArn='arn:aws:sns:ca-central-1:969112874411:E6156CustomerChange',
+            Subject='New Registration',
+            Message='{"customers_email":"%s"}'%user_info['email'],
+        )
 
         return result
 
