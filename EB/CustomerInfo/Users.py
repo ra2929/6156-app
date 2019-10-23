@@ -3,7 +3,7 @@ from Context.Context import Context
 from DataAccess.DataObject import UsersRDB as UsersRDB
 import uuid
 import boto3
-
+import os
 
 # The base classes would not be IN the project. They would be in a separate included package.
 # They would also do some things.
@@ -64,8 +64,14 @@ class UsersService(BaseService):
         user_info['id'] = str(uuid.uuid4())
         user_info["status"] = "PENDING"
         result = UsersRDB.create_user(user_info=user_info)
+        print(os.environ['region_name'])
+        print(os.environ['aws_access_key_id'])
+        print(os.environ['aws_secret_access_key'])
+        client = boto3.client('sns',
+                              region_name = os.environ['region_name'],
+                              aws_access_key_id = os.environ['aws_access_key_id'],
+                              aws_secret_access_key = os.environ['aws_secret_access_key'])
 
-        client = boto3.client('sns')
         response = client.publish(
             TopicArn='arn:aws:sns:ca-central-1:969112874411:E6156CustomerChange',
             Subject='New Registration',
