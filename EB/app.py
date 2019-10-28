@@ -182,7 +182,7 @@ def register_user():
                 rsp_status = 404
                 rsp_txt = "EMAIL ALREADY IN USE"
             else:
-                rsp = user_service.ceate_user(body)
+                rsp = user_service.create_user(body)
                 rsp_data = rsp
                 rsp_status = 200
                 rsp_txt = "OK"
