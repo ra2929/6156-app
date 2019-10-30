@@ -1,4 +1,3 @@
-
 # Import functions and objects the microservice needs.
 # - Flask is the top-level application. You implement the application by adding methods to it.
 # - Response enables creating well-formed HTTP/REST responses.
@@ -8,6 +7,7 @@ from flask import Flask, Response, request
 
 from datetime import datetime
 import json
+import werkzeug.http
 
 from CustomerInfo.Users import UsersService as UserService
 from Context.Context import Context
@@ -16,9 +16,11 @@ from Context.Context import Context
 # The application should get the log level out of the context. We will change later.
 #
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+
 
 ###################################################################################################################
 #
@@ -26,8 +28,9 @@ logger.setLevel(logging.DEBUG)
 #
 # AWS puts this function in the default started application
 # print a nice greeting.
-def say_hello(username = "World"):
+def say_hello(username="World"):
     return '<p>Hello %s!</p>\n' % username
+
 
 # AWS put this here.
 # some bits of text for the page.
@@ -46,12 +49,12 @@ application = Flask(__name__)
 
 # add a rule for the index page. (Put here by AWS in the sample)
 application.add_url_rule('/', 'index', (lambda: header_text +
-    say_hello() + instructions + footer_text))
+                                                say_hello() + instructions + footer_text))
 
 # add a rule when the page is accessed with a name appended to the site
 # URL. Put here by AWS in the sample
 application.add_url_rule('/<username>', 'hello', (lambda username:
-    header_text + say_hello(username) + home_link + footer_text))
+                                                  header_text + say_hello(username) + home_link + footer_text))
 
 ##################################################################################################################
 # The stuff I added begins here.
@@ -61,7 +64,6 @@ _user_service = None
 
 
 def _get_default_context():
-
     global _default_context
 
     if _default_context is None:
@@ -78,8 +80,8 @@ def _get_user_service():
 
     return _user_service
 
-def init():
 
+def init():
     global _default_context, _user_service
 
     _default_context = Context.get_default_context()
@@ -93,7 +95,6 @@ def init():
 # 3. Return extracted information.
 #
 def log_and_extract_input(method, path_params=None):
-
     path = request.path
     args = dict(request.args)
     data = None
@@ -111,22 +112,22 @@ def log_and_extract_input(method, path_params=None):
 
     log_message = str(datetime.now()) + ": Method " + method
 
-    inputs =  {
+    inputs = {
         "path": path,
         "method": method,
         "path_params": path_params,
         "query_params": args,
         "headers": headers,
         "body": data
-        }
+    }
 
     log_message += " received: \n" + json.dumps(inputs, indent=2)
     logger.debug(log_message)
 
     return inputs
 
-def log_response(method, status, data, txt):
 
+def log_response(method, status, data, txt):
     msg = {
         "method": method,
         "status": status,
@@ -140,8 +141,7 @@ def log_response(method, status, data, txt):
 # This function performs a basic health check. We will flesh this out.
 @application.route("/health", methods=["GET"])
 def health_check():
-
-    rsp_data = { "status": "healthy", "time": str(datetime.now()) }
+    rsp_data = {"status": "healthy", "time": str(datetime.now())}
     rsp_str = json.dumps(rsp_data)
     rsp = Response(rsp_str, status=200, content_type="application/json")
     return rsp
@@ -149,11 +149,10 @@ def health_check():
 
 @application.route("/demo/<parameter>", methods=["GET", "POST"])
 def demo(parameter):
-
-    inputs = log_and_extract_input(demo, { "parameter": parameter })
+    inputs = log_and_extract_input(demo, {"parameter": parameter})
 
     msg = {
-        "/demo received the following inputs" : inputs
+        "/demo received the following inputs": inputs
     }
 
     rsp = Response(json.dumps(msg), status=200, content_type="application/json")
@@ -175,7 +174,7 @@ def register_user():
         logger.error("/email: _user_service = " + str(user_service))
         if inputs["method"] == "POST":
             body = inputs.get("body", None)
-            rsp = user_service.get_by_email(body.get("email",None))
+            rsp = user_service.get_by_email(body.get("email", None))
 
             if rsp is not None:
                 rsp_data = None
@@ -264,10 +263,22 @@ def user():
     return full_rsp
 
 
+def etag_match(inputs, rsp):
+    headers = inputs.get("headers", None)
+    etag = headers.get("Etag", None)
+    etags_match = True
+    if etag is not None:
+        tmp = Response(json.dumps(rsp), status=400, content_type="application/json")
+        tmp.add_etag()
+
+        etags_match = werkzeug.http.unquote_etag(etag) == tmp.get_etag()
+    return etags_match
+
+
 @application.route("/api/user/<email>", methods=["GET", "PUT", "DELETE"])
 def user_email(email):
     global _user_service
-    inputs = log_and_extract_input(demo, { "parameters": email })
+    inputs = log_and_extract_input(demo, {"parameters": email})
     rsp_data = None
 
     try:
@@ -288,7 +299,7 @@ def user_email(email):
         elif inputs["method"] == "DELETE":
             rsp = user_service.get_by_email(email)
             if rsp is not None:
-                if rsp["status"]=="DELETED":
+                if rsp["status"] == "DELETED":
                     rsp_data = None
                     rsp_status = 404
                     rsp_txt = "User Account " + rsp["email"] + "has already been deleted"
@@ -307,7 +318,7 @@ def user_email(email):
             rsp = user_service.get_by_email(email)
 
             if rsp is not None:
-                if rsp["status"]=="DELETED":
+                if rsp["status"] == "DELETED":
                     rsp_data = None
                     rsp_status = 404
                     rsp_txt = "User Account " + rsp["email"] + "is deleted"
@@ -315,6 +326,10 @@ def user_email(email):
                     rsp_data = None
                     rsp_status = 404
                     rsp_txt = "Body Not Received"
+                elif not etag_match(inputs, rsp):
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "ETag did not match, underlying data has changed already."
                 else:
                     body["id"] = rsp["id"]
                     rsp = user_service.update_user(body, email)
@@ -334,6 +349,7 @@ def user_email(email):
 
         if rsp_data is not None:
             full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+            full_rsp.add_etag()
         else:
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 
@@ -354,7 +370,6 @@ logger.debug("__name__ = " + str(__name__))
 if __name__ == "__main__":
     # Setting debug to True enables debug output. This line should be
     # removed before deploying a production app.
-
 
     logger.debug("Starting Project EB at time: " + str(datetime.now()))
     init()
