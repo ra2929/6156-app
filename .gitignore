@@ -1,6 +1,4 @@
-.DS_Store
 .idea/
-EB/.idea/
 EB/Context/__pycache__/
 EB/CustomerInfo/__pycache__/
 EB/DataAccess/__pycache__/

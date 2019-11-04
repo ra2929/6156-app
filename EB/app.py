@@ -16,11 +16,9 @@ from Context.Context import Context
 # The application should get the log level out of the context. We will change later.
 #
 import logging
-
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
 
 ###################################################################################################################
 #
@@ -30,7 +28,6 @@ logger.setLevel(logging.DEBUG)
 # print a nice greeting.
 def say_hello(username="World"):
     return '<p>Hello %s!</p>\n' % username
-
 
 # AWS put this here.
 # some bits of text for the page.
@@ -49,12 +46,12 @@ application = Flask(__name__)
 
 # add a rule for the index page. (Put here by AWS in the sample)
 application.add_url_rule('/', 'index', (lambda: header_text +
-                                                say_hello() + instructions + footer_text))
+    say_hello() + instructions + footer_text))
 
 # add a rule when the page is accessed with a name appended to the site
 # URL. Put here by AWS in the sample
 application.add_url_rule('/<username>', 'hello', (lambda username:
-                                                  header_text + say_hello(username) + home_link + footer_text))
+    header_text + say_hello(username) + home_link + footer_text))
 
 ##################################################################################################################
 # The stuff I added begins here.
@@ -79,7 +76,6 @@ def _get_user_service():
         _user_service = UserService(_get_default_context())
 
     return _user_service
-
 
 def init():
     global _default_context, _user_service
@@ -126,7 +122,6 @@ def log_and_extract_input(method, path_params=None):
 
     return inputs
 
-
 def log_response(method, status, data, txt):
     msg = {
         "method": method,
@@ -141,7 +136,7 @@ def log_response(method, status, data, txt):
 # This function performs a basic health check. We will flesh this out.
 @application.route("/health", methods=["GET"])
 def health_check():
-    rsp_data = {"status": "healthy", "time": str(datetime.now())}
+    rsp_data = { "status": "healthy", "time": str(datetime.now()) }
     rsp_str = json.dumps(rsp_data)
     rsp = Response(rsp_str, status=200, content_type="application/json")
     return rsp
@@ -149,10 +144,10 @@ def health_check():
 
 @application.route("/demo/<parameter>", methods=["GET", "POST"])
 def demo(parameter):
-    inputs = log_and_extract_input(demo, {"parameter": parameter})
+    inputs = log_and_extract_input(demo, { "parameter": parameter })
 
     msg = {
-        "/demo received the following inputs": inputs
+        "/demo received the following inputs" : inputs
     }
 
     rsp = Response(json.dumps(msg), status=200, content_type="application/json")
@@ -278,7 +273,7 @@ def etag_match(inputs, rsp):
 @application.route("/api/user/<email>", methods=["GET", "PUT", "DELETE"])
 def user_email(email):
     global _user_service
-    inputs = log_and_extract_input(demo, {"parameters": email})
+    inputs = log_and_extract_input(demo, { "parameters": email })
     rsp_data = None
 
     try:
