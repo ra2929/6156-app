@@ -25,7 +25,9 @@ class Context():
         db_connect_info = os.environ['db_connect_info']
         db_connect_info = json.loads(db_connect_info)
 
-        ctx = { "db_connect_info": db_connect_info }
+        ctx = { "db_connect_info": db_connect_info,
+                "JWT_SECRET":os.environ['jwt_secret'],
+                "lahman_db_connect_info":json.loads(os.environ["lahman_db_connect_info"])}
 
         result = Context(ctx)
         return result
