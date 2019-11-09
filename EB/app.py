@@ -12,7 +12,11 @@ import copy
 from Services.CustomerInfo.Users import UsersService as UserService
 from Context.Context import Context
 from Services.RegisterLogin.RegisterLogin import RegisterLoginSvc as RegisterLoginSvc
-from Services.BaseballData import BaseballData as BaseballData
+import EB.Middleware.security as security
+from EB.Middleware.security import authorize
+import time
+import os
+# from Services.BaseballData import BaseballData as BaseballData
 
 # Setup and use the simple, common Python logging framework. Send log messages to the console.
 # The application should get the log level out of the context. We will change later.
@@ -100,6 +104,7 @@ def init():
 # 2. Log the information
 # 3. Return extracted information.
 #
+
 def log_and_extract_input(method, path_params=None):
     path = request.path
     args = dict(request.args)
@@ -286,6 +291,7 @@ def etag_match(inputs, rsp):
 
 
 @application.route("/api/user/<email>", methods=["GET", "PUT", "DELETE"])
+@authorize
 def user_email(email):
     global _user_service
     inputs = log_and_extract_input(demo, { "parameters": email })
@@ -394,7 +400,8 @@ def login():
             rsp = r_svc.login(inputs['body'])
 
             if rsp is not None:
-                rsp_data = "OK"
+                rsp_data = "LOGIN SUCCESSFUL"
+                print(rsp)
                 rsp_status = 201
                 rsp_txt = "CREATED"
             else:
@@ -538,6 +545,8 @@ def get_resource(resource, primary_key =None,related_resource=None):
     else:
         return "Method " + request.method + " on resource " + resource + \
                " not implemented!", 501, {"conent-type": "text/plain; charset: utf-8"}
+
+
 
 logger.debug("__name__ = " + str(__name__))
 # run the app.
