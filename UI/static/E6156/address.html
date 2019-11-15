@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <title>SmartyStreets US Autocomplete Pro</title>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <link href="css/small-business.css" rel="stylesheet">
+    <script type="text/javascript" src="address.js"> </script>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </head>
+
+  <body>
+    <div class="content-white us-autocomplete-pro-example">
+      <div class="container">
+        <div class="us-autocomplete-pro-input-container">
+          <label for="us-autocomplete-pro-address-input">Address demo</label><br>
+          <input id="us-autocomplete-pro-address-input" placeholder="Enter Address" />
+          <ul class="us-autocomplete-pro-menu" style="display:none;"></ul>
+          <div class="disabled-inputs">
+            <input id="city" placeholder="City" disabled />
+            <div class="state-and-zip">
+              <input id="state" placeholder="State" disabled />
+              <input id="zip" placeholder="Zip*" disabled />
+            </div>
+          </div>
+        </div>
+        <div class="data-container">
+          <div>
+            <h3>*Additional Data</h3>
+            <div class="labels inline align-right">
+              <span>Latitude:</span><br>
+              <span>Longitude:</span><br>
+              <span>County:</span><br>
+              <span>Time Zone:</span>
+            </div>
+            <div class="data inline align-left">
+              <span id="data-lat"></span><br>
+              <span id="data-lon"></span><br>
+              <span id="data-county"></span><br>
+              <span id="data-time-zone"></span>
+            </div>
+            <div class="more-data">
+              ... along with 32 other points of data.
+            </div>
+          </div>
+        </div>
+        <div class="disclaimer">*ZIP Code & Additional Data retrieved from <a href="https://smartystreets.com/products/apis/us-street-api">US
+            Street Address API</a></div>
+      </div>
+    </div>
+  </body>
+</html>
+
+
+  
+  <script>
+    // tell the embed parent frame the height of the content
+    if (window.parent && window.parent.parent){
+      window.parent.parent.postMessage(["resultsFrame", {
+        height: document.body.getBoundingClientRect().height,
+        slug: "uptgh7c8"
+      }], "*")
+    }
+
+    // always overwrite window.name, in case users try to set it manually
+    window.name = "result"
+  </script>
+</body>
+</html>
