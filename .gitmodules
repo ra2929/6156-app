@@ -1,0 +1,3 @@
+[submodule "address-microservice"]
+	path = address-microservice
+	url = https://github.com/najerama/address-microservice.git
