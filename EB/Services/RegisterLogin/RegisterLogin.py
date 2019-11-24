@@ -1,6 +1,9 @@
-import EB.Middleware.security as security
-from EB.Context.Context import Context
-from EB.Services.CustomerInfo.Users import UsersService as user_svc
+# import EB.Middleware.security as security
+# from EB.Context.Context import Context
+# from EB.Services.CustomerInfo.Users import UsersService as user_svc
+import Middleware.security as security
+from Context.Context import Context
+from Services.CustomerInfo.Users import UsersService as user_svc
 
 
 
@@ -36,13 +39,13 @@ class RegisterLoginSvc():
     @classmethod
     def login(cls, login_info):
         test = security.hash_password({"password" : login_info['password']})
+        print(test)
         s_info = user_svc.get_by_email(login_info['email'])
-        test = str(test)
-        if str(test) == s_info['password']:
+        if test == s_info['password']:
             tok = security.generate_token(s_info)
             return tok
         else:
-            return False
+            return None
 
     @classmethod
     def get_field_map(cls, target_resource):

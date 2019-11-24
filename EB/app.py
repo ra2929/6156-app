@@ -10,10 +10,12 @@ import json
 import werkzeug.http
 import copy
 from Services.CustomerInfo.Users import UsersService as UserService
+from Services.CustomerInfo.Profiles import ProfilesService as ProfileService
 from Context.Context import Context
 from Services.RegisterLogin.RegisterLogin import RegisterLoginSvc as RegisterLoginSvc
-import EB.Middleware.security as security
-from EB.Middleware.security import authorize
+# import EB.Middleware.security as security
+# from EB.Middleware.security import authorize
+from Middleware.security import authorize
 import time
 import os
 # from Services.BaseballData import BaseballData as BaseballData
@@ -25,7 +27,6 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
-
 ###################################################################################################################
 #
 # AWS put most of this in the default application template.
@@ -64,6 +65,7 @@ application.add_url_rule('/<username>', 'hello', (lambda username:
 
 _default_context = None
 _user_service = None
+_profile_service = None
 _registration_service = None
 
 def _get_default_context():
@@ -83,6 +85,14 @@ def _get_user_service():
 
     return _user_service
 
+def _get_profile_service():
+    global _profile_service
+
+    if _profile_service is None:
+        _profile_service = ProfileService(_get_default_context())
+
+    return _profile_service
+
 def _get_registration_service():
     global _registration_service
 
@@ -92,10 +102,12 @@ def _get_registration_service():
     return _registration_service
 
 def init():
-    global _default_context, _user_service
+    global _default_context, _user_service, _profile_service
 
     _default_context = Context.get_default_context()
     _user_service = UserService(_default_context)
+    _profile_service = ProfileService(_default_context)
+
 
     logger.debug("_user_service = " + str(_user_service))
 
@@ -380,6 +392,179 @@ def user_email(email):
 
     return full_rsp
 
+@application.route("/api/profile/<profile_entry_id>", methods=["GET", "PUT", "DELETE"])
+def profile_profile_entry_id(profile_entry_id):
+    global _profile_service
+    inputs = log_and_extract_input(demo, { "parameters": profile_entry_id })
+    rsp_data = None
+
+    try:
+        profile_service = _get_profile_service()
+        logger.error("/api/profile/profile_entry_id: _profile_service = " + str(profile_service))
+
+        if inputs["method"] == "GET":
+            rsp = profile_service.get_by_profile_entry_id(profile_entry_id)
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NO PROFILE ENTRIES WITH THAT PROFILE ENTRY ID FOUND"
+
+        elif inputs["method"] == "DELETE":
+            rsp = profile_service.get_by_profile_entry_id(profile_entry_id)
+            if rsp is not None:
+                rsp = profile_service.delete_profile_entry(profile_entry_id)
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NO PROFILE ENTRIES WITH THAT PROFILE ENTRY ID FOUND TO DELETE"
+
+        elif inputs["method"] == "PUT":
+            body = inputs.get("body", None)
+            rsp = profile_service.get_by_profile_entry_id(profile_entry_id)
+            if rsp is not None:
+                if body is None:
+                    rsp_data = None
+                    rsp_status = 404
+                    rsp_txt = "Body Not Received"
+                else:
+                    # body["id"] = rsp["id"]
+                    rsp = profile_service.update_profile_entry(body, profile_entry_id)
+                    rsp_data = rsp
+                    rsp_status = 200
+                    rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "PROFILE ENTRY NOT FOUND"
+
+
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "NOT IMPLEMENTED"
+
+        if rsp_data is not None:
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+            full_rsp.add_etag()
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    except Exception as e:
+        print(e)
+        log_msg = "/profile/: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/profile/profile_entry_id", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
+@application.route("/api/profile/<customer_id>/profile", methods=["GET"])
+def profile_customer_id(customer_id):
+    global _profile_service
+    inputs = log_and_extract_input(demo)
+    rsp_data = None
+    try:
+        profile_service = _get_profile_service()
+        logger.error("/api/profile/customer_id/profile: _profile_service = " + str(profile_service))
+
+        if inputs["method"] == "GET":
+            rsp = profile_service.get_by_customer_id(customer_id)
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NONE FOUND"
+
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "NOT IMPLEMENTED"
+
+        if rsp_data is not None:
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+    except Exception as e:
+        log_msg = "/api/profile/: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/api/profile/", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
+
+
+@application.route("/api/profile", methods=["GET", "POST"])
+def profile():
+    global _profile_service
+    inputs = log_and_extract_input(demo)
+    rsp_data = None
+    try:
+        profile_service = _get_profile_service()
+        logger.error("/api/profile/: _profile_service = " + str(profile_service))
+
+        if inputs["method"] == "GET":
+            queries = inputs['query_params']
+            if queries:
+                rsp = profile_service.get_queried(queries)
+            else:
+                rsp = profile_service.get_first()
+
+            if rsp is not None:
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+            else:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "NONE FOUND"
+
+        elif inputs["method"] == "POST":
+            body = inputs.get("body", None)
+
+            if body is None:
+                rsp_data = None
+                rsp_status = 404
+                rsp_txt = "Body Not Received"
+            else:
+                rsp = profile_service.create_profile_entry(body)
+                rsp_data = rsp
+                rsp_status = 200
+                rsp_txt = "OK"
+        else:
+            rsp_data = None
+            rsp_status = 501
+            rsp_txt = "NOT IMPLEMENTED"
+
+        if rsp_data is not None:
+            full_rsp = Response(json.dumps(rsp_data), status=rsp_status, content_type="application/json")
+        else:
+            full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+    except Exception as e:
+        log_msg = "/api/profile/: Exception = " + str(e)
+        logger.error(log_msg)
+        rsp_status = 500
+        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
+    log_response("/api/profile/", rsp_status, rsp_data, rsp_txt)
+
+    return full_rsp
 
 @application.route("/api/login", methods=["POST"])
 def login():

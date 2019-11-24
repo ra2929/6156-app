@@ -72,11 +72,10 @@ def run_q(sql, args=None, fetch=True, cur=None, conn=None, commit=True):
     connection_created = False
 
     try:
-
         if conn is None:
             connection_created = True
             conn = _get_default_connection()
-
+        conn.ping(reconnect=True)
         if cur is None:
             cursor_created = True
             cur = conn.cursor()
