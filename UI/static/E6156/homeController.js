@@ -102,6 +102,54 @@ CustomerApp.controller("homeController", function($scope, $http, $location, $win
 
         }
     };
+       $scope.doRegistration = function() {
+        console.log("doing Registration")
+        $("#loginModal").modal();
+    };
+
+    $scope.driveRegistration = function() {
+        CustomerService.driveRegistration(
+            $scope.lemail, $scope.password
+        ).then(function(result) {
+            console.log("Resolved!")
+            $scope.loginRegisterResult = true;
+            CustomerService.getCustomer($scope.lemail)
+                .then(function(c) {
+                    $scope.customerInfo = c;
+                    $scope.$apply();
+                })
+                .catch(function(error) {
+                    console.log("Boom!")
+                });
+        }).
+        catch(function(error) {
+            console.log("Error");
+        })
+    };
+    $scope.registrationOK = function() {
+        if ($scope.register) {
+            if (($scope.lemail && $scope.password) &&
+                ($scope.lemail.length > 0) &&
+                ($scope.password.length > 0)) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if (($scope.lemail && $scope.password && $scope.password2) &&
+                ($scope.lastName && $scope.firstName) &&
+                ($scope.lemail.length > 0) &&
+                ($scope.password.length > 0) &&
+                ($scope.password2.length > 0) &&
+                ($scope.lastName.length > 0) &&
+                ($scope.firstName.length > 0)) {
+                return true;
+            } else {
+                return false;
+            }
+
+        }
+    };
 
 
     var urlBase = "http://127.0.0.1:5000"
