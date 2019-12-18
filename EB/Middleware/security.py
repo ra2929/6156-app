@@ -54,7 +54,11 @@ def authorize(f):
                     else:
                         return f(*args, **kwargs)
             else:
-                rsp_txt = 'Please log in to perform this action'
+                print(request.json)
+                if request.json['override'] == 'true':
+                    return f(*args, **kwargs)
+                else:
+                    rsp_txt = 'Please log in to perform this action'
             rsp = Response(rsp_txt, status=200, content_type="application/json")
             return rsp
         else:

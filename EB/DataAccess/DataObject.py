@@ -36,7 +36,6 @@ class ProfilesRDB(BaseDataObject):
             result = data[0]
         else:
             result = None
-
         return result
 
     @classmethod
@@ -117,7 +116,6 @@ class ProfilesRDB(BaseDataObject):
 
     @classmethod
     def update_profile_entry(cls, profile_entry_id, body):
-
         result = None
 
         try:
@@ -153,7 +151,8 @@ class UsersRDB(BaseDataObject):
             result = data[0]
         else:
             result = None
-
+        result["profile_link"] = "/api/customers/" + result['id'] + "/profile"
+        print(result)
         return result
 
     @classmethod
@@ -164,7 +163,8 @@ class UsersRDB(BaseDataObject):
             result = data[0]
         else:
             result = None
-
+        result["profile_link"] = "/api/customers/" + result['id'] + "/profile"
+        print(result)
         return result
 
     @classmethod
@@ -204,6 +204,8 @@ class UsersRDB(BaseDataObject):
     def update_user(cls, email, user_info):
 
         result = None
+
+        user_info.pop("override", None)
 
         try:
             sql, args = data_adaptor.create_update(table_name="e6156.users", new_values=user_info, template={"email":email})

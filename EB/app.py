@@ -435,7 +435,7 @@ def profile_profile_entry_id(profile_entry_id):
                     rsp_txt = "Body Not Received"
                 else:
                     # body["id"] = rsp["id"]
-                    rsp = profile_service.update_profile_entry(body, profile_entry_id)
+                    rsp = profile_service.update_profile_entry(body, profile_entry_id, rsp)
                     rsp_data = rsp
                     rsp_status = 200
                     rsp_txt = "OK"
@@ -457,25 +457,26 @@ def profile_profile_entry_id(profile_entry_id):
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 
     except Exception as e:
-        print(e)
         log_msg = "/profile/: Exception = " + str(e)
         logger.error(log_msg)
         rsp_status = 500
-        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        # rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        rsp_txt = str(e)
         full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
+
 
     log_response("/profile/profile_entry_id", rsp_status, rsp_data, rsp_txt)
 
     return full_rsp
 
-@application.route("/api/profile/<customer_id>/profile", methods=["GET"])
+@application.route("/api/customers/<customer_id>/profile", methods=["GET"])
 def profile_customer_id(customer_id):
     global _profile_service
     inputs = log_and_extract_input(demo)
     rsp_data = None
     try:
         profile_service = _get_profile_service()
-        logger.error("/api/profile/customer_id/profile: _profile_service = " + str(profile_service))
+        logger.error("/api/customers/customer_id/profile: _profile_service = " + str(profile_service))
 
         if inputs["method"] == "GET":
             rsp = profile_service.get_by_customer_id(customer_id)
@@ -498,13 +499,13 @@ def profile_customer_id(customer_id):
         else:
             full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
     except Exception as e:
-        log_msg = "/api/profile/: Exception = " + str(e)
+        log_msg = "/api/customers/customer_id/profile/: Exception = " + str(e)
         logger.error(log_msg)
         rsp_status = 500
         rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
         full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 
-    log_response("/api/profile/", rsp_status, rsp_data, rsp_txt)
+    log_response("/api/customers/customer_id/profile", rsp_status, rsp_data, rsp_txt)
 
     return full_rsp
 
@@ -559,7 +560,8 @@ def profile():
         log_msg = "/api/profile/: Exception = " + str(e)
         logger.error(log_msg)
         rsp_status = 500
-        rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
+        rsp_txt = "Uh oh! The following error occurred: \n" + str(e)
+        # rsp_txt = "INTERNAL SERVER ERROR. Please take COMSE6156 -- Cloud Native Applications."
         full_rsp = Response(rsp_txt, status=rsp_status, content_type="text/plain")
 
     log_response("/api/profile/", rsp_status, rsp_data, rsp_txt)

@@ -7,3 +7,4 @@ PyMySQL==0.9.3
 Werkzeug==0.15.5
 boto3
 pyjwt
+requests
